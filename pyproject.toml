@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nyaai-ai"
+version = "0.1.0"
+description = "Nya AI — AI service for chunking, embeddings, retrieval, and LLM"
+requires-python = ">=3.11"
+dependencies = ["httpx>=0.28.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

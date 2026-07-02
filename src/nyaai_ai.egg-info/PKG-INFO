@@ -1,0 +1,6 @@
+Metadata-Version: 2.4
+Name: nyaai-ai
+Version: 0.1.0
+Summary: Nya AI — AI service for chunking, embeddings, retrieval, and LLM
+Requires-Python: >=3.11
+Requires-Dist: httpx>=0.28.0
