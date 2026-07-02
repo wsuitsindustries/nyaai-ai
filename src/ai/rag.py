@@ -2,6 +2,17 @@ from ai.retrieval import retrieve_texts
 from ai.llm import complete
 from ai.prompts import build_prompt
 
+GENERAL_PROMPT = """You are Nya AI, an enterprise knowledge agent built by WSUITSINDUSTRIES.
+
+You help organization members answer questions using both general knowledge and internal documents.
+- Answer concisely, accurately, and helpfully.
+- If asked about the organization's specific documents, note that no documents have been uploaded yet.
+- Be friendly and professional.
+
+Question: {question}
+
+Answer:"""
+
 
 async def answer_with_rag(
     question: str,
@@ -11,8 +22,11 @@ async def answer_with_rag(
 ) -> tuple[str, list[str]]:
     relevant = retrieve_texts(question, chunks)
 
-    if use_llm and relevant:
-        prompt = build_prompt(question, relevant, sources)
+    if use_llm:
+        if relevant:
+            prompt = build_prompt(question, relevant, sources)
+        else:
+            prompt = GENERAL_PROMPT.format(question=question)
         try:
             answer = await complete([
                 {"role": "user", "content": prompt},
@@ -21,7 +35,6 @@ async def answer_with_rag(
         except Exception:
             pass
 
-    # Fallback: return formatted context
     if relevant:
         context = "\n\n".join(
             f"Based on the retrieved documents:\n\n{chunk}"
