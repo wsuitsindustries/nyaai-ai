@@ -153,22 +153,3 @@ async def complete_stream(
                         yield delta.get("content", "")
 
 
-def build_prompt(question: str, context_chunks: list[str]) -> str:
-    """Build a prompt with context for RAG."""
-    from ai.prompts import SYSTEM_PROMPT
-
-    context = "\n\n".join(
-        f"[Source {i+1}]\n{chunk}"
-        for i, chunk in enumerate(context_chunks)
-    )
-
-    return f"""{SYSTEM_PROMPT}
-
-{"=" * 60}
-CONTEXT:
-{context if context else "(No relevant documents found.)"}
-{"=" * 60}
-
-Question: {question}
-
-Answer:"""
