@@ -45,3 +45,10 @@ LLM_PROVIDER=openrouter LLM_BASE_URL=https://openrouter.ai/api/v1 LLM_MODEL=meta
 # GitHub Models (free with GH account)
 LLM_PROVIDER=github LLM_BASE_URL=https://models.inference.ai.azure.com LLM_MODEL=gpt-4o-mini
 ```
+
+## Documentation
+
+See the [`docs/`](./docs/) folder for project-level documentation relevant to the AI service:
+- [Architecture](./docs/ARCHITECTURE.md) — AI pipeline design, embeddings, retrieval
+- [Development](./docs/DEVELOPMENT.md) — setup, configuration, LLM providers
+- [MVP Audit](./docs/MVP_AUDIT.md) — AI-specific gaps and action items
