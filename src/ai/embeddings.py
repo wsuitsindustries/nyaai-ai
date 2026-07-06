@@ -43,13 +43,27 @@ def _hash_features(text: str, dim: int = 256) -> list[float]:
     return vec
 
 
+_cache: dict[int, list[float]] = {}
+_MAX_CACHE = 1000
+
+
 def embed(text: str) -> list[float]:
+    key = hash(text)
+    if key in _cache:
+        return _cache[key]
     if _FASTEMBED_AVAILABLE:
         _load_model()
         if _model is not None:
             emb = next(_model.embed([text]))
-            return [float(v) for v in emb]
-    return _hash_features(text)
+            vec = [float(v) for v in emb]
+        else:
+            vec = _hash_features(text)
+    else:
+        vec = _hash_features(text)
+    if len(_cache) >= _MAX_CACHE:
+        _cache.pop(next(iter(_cache)))
+    _cache[key] = vec
+    return vec
 
 
 def cosine_similarity(a: list[float], b: list[float]) -> float:
