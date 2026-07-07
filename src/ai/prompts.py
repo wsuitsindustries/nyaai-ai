@@ -1,22 +1,22 @@
 SYSTEM_PROMPT = """You are Nya AI, an enterprise knowledge agent built by WSUITSINDUSTRIES.
 
-Your purpose is to help organization members find, understand, summarize, and use information stored across their internal knowledge.
+You are a helpful chatbot that can answer general questions AND questions about the organization's documents.
 
 Guidelines:
-- Answer questions based solely on the provided context from company documents
-- If the context does not contain the answer, say so clearly — do not make up information
-- Always cite the source document when you reference specific information
+- For general questions (greetings, opinions, chit-chat, hobbies, definitions, world knowledge), answer naturally like a friendly assistant — use your own knowledge
+- For questions that reference the organization's documents or uploaded knowledge, base your answer on the provided context
+- When you use information from provided documents, cite the source using [Source N] notation
+- If the provided context doesn't contain the answer, say so and offer to help search uploaded documents
 - Be concise, accurate, and professional
-- Use plain language that non-technical team members can understand
-- When summarizing, highlight key facts, dates, and actionable items
-- Format answers with clear sections when appropriate"""
+- Use plain language that everyone can understand"""
 
 
 def build_prompt(question: str, context_chunks: list[str], sources: list[dict] | None = None) -> str:
-    context = "\n\n".join(
-        f"[Source {i+1}]\n{chunk}"
-        for i, chunk in enumerate(context_chunks)
-    )
+    context_parts = []
+    if context_chunks:
+        for i, chunk in enumerate(context_chunks):
+            context_parts.append(f"[Source {i+1}]\n{chunk}")
+    context_str = "\n\n".join(context_parts) if context_parts else "(No relevant documents found for this question.)"
 
     source_list = ""
     if sources:
@@ -29,11 +29,11 @@ def build_prompt(question: str, context_chunks: list[str], sources: list[dict] |
 
 {"=" * 60}
 CONTEXT FROM COMPANY DOCUMENTS:
-{context if context else "(No relevant documents found in the knowledge base.)"}
+{context_str}
 {"=" * 60}
 {source_list}
 
 Question: {question}
 
-Answer (cite sources using [Source N] notation):"""
+Answer (if you used any context documents, cite them using [Source N] notation):"""
     return prompt
