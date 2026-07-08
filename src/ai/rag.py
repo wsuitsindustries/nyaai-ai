@@ -1,8 +1,8 @@
-from ai.retrieval import retrieve_with_embeddings, retrieve_texts
+from ai.retrieval import retrieve, retrieve_with_embeddings
 from ai.llm import complete
 from ai.prompts import build_prompt
 
-CONVERSATION_PROMPT = """You are Nya AI, an enterprise knowledge agent built by WSUITSINDUSTRIES.
+CONVERSATION_PROMPT = """You are NyaAI, an enterprise knowledge agent built by WSUITSINDUSTRIES.
 
 You are a helpful chatbot that can answer general questions AND questions about the organization's documents.
 
@@ -21,8 +21,9 @@ async def answer_with_rag(
     chunk_embeddings: list[list[float]] | None = None,
     sources: list[dict] | None = None,
     use_llm: bool = False,
+    top_k: int = 10,
 ) -> tuple[str, list[str]]:
-    relevant = retrieve_with_embeddings(question, chunks, chunk_embeddings)
+    relevant = await retrieve_with_embeddings(question, chunks, chunk_embeddings, top_k=top_k)
 
     if use_llm:
         try:
@@ -37,7 +38,7 @@ async def answer_with_rag(
         except Exception:
             if relevant:
                 context = "\n\n".join(
-                    f"Based on the retrieved documents:\n\n{chunk}"
+                    f"[Source {i+1}]\n{chunk}"
                     for i, chunk in enumerate(relevant)
                 )
                 answer = f"""Based on the information I found in your organization's documents:
@@ -50,7 +51,7 @@ I found this information in your knowledge base. For a more detailed answer with
 
     if relevant:
         context = "\n\n".join(
-            f"Based on the retrieved documents:\n\n{chunk}"
+            f"[Source {i+1}]\n{chunk}"
             for i, chunk in enumerate(relevant)
         )
         return context, relevant
@@ -63,8 +64,9 @@ async def stream_rag(
     chunks: list[str],
     chunk_embeddings: list[list[float]] | None = None,
     sources: list[dict] | None = None,
+    top_k: int = 10,
 ):
-    relevant = retrieve_with_embeddings(question, chunks, chunk_embeddings)
+    relevant = await retrieve_with_embeddings(question, chunks, chunk_embeddings, top_k=top_k)
 
     if not relevant:
         try:
