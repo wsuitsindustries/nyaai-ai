@@ -64,7 +64,6 @@ def chunk_text(
         return []
 
     paragraphs = re.split(r"\n\s*\n", text.strip())
-    boundaries = _detect_boundaries(text)
 
     chunks: list[str] = []
     buffer = ""
@@ -75,7 +74,7 @@ def chunk_text(
         if not para:
             continue
 
-        is_header = any(para.startswith("#") for _ in range(1, 7))
+        is_header = bool(re.match(r"^#{1,6}\s", para))
 
         if len(buffer) + len(para) + 1 <= chunk_size:
             if buffer:

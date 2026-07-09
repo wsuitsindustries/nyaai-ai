@@ -65,12 +65,12 @@ def _hash_features(text: str, dim: int = 256) -> list[float]:
     return vec
 
 
-_cache: dict[int, list[float]] = {}
+_cache: dict[str, list[float]] = {}
 _MAX_CACHE = 1000
 
 
 async def embed(text: str) -> list[float]:
-    key = hash(text)
+    key = hashlib.sha256(text.encode()).hexdigest()
 
     # Try Redis cluster cache first
     r = _get_redis()

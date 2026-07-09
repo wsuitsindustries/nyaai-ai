@@ -1,4 +1,4 @@
-from ai.retrieval import retrieve, retrieve_with_embeddings
+from ai.retrieval import retrieve_with_embeddings
 from ai.llm import complete
 from ai.prompts import build_prompt
 

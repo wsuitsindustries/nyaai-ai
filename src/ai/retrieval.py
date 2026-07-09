@@ -6,7 +6,6 @@ then reranks candidates for final selection.
 
 import math
 import re
-from collections import Counter
 
 from ai.embeddings import embed, embed_batch, cosine_similarity
 
@@ -34,20 +33,20 @@ def _tokenize(text: str) -> list[str]:
     return [t.lower() for t in re.findall(r"\w+", text) if t.lower() not in _stopwords and len(t) > 2]
 
 
-def _idf(token: str, docs: list[str]) -> float:
-    n = sum(1 for d in docs if token in d.lower())
-    return math.log((len(docs) - n + 0.5) / (n + 0.5) + 1.0)
+def _idf(token: str, tokenized_docs: list[list[str]]) -> float:
+    n = sum(1 for dt in tokenized_docs if token in dt)
+    return math.log((len(tokenized_docs) - n + 0.5) / (n + 0.5) + 1.0)
 
 
 def _bm25_score(query_tokens: list[str], doc: str, doc_tokens: list[str] | None, avg_dl: float, idf_cache: dict[str, float]) -> float:
     k1, b = 1.5, 0.75
     dl = len(doc_tokens) if doc_tokens else len(doc.split())
     score = 0.0
-    doc_lower = doc.lower()
+    doc_tokens_lower = [t.lower() for t in (doc_tokens or [])]
     for t in query_tokens:
-        if t not in doc_lower:
+        if t not in doc_tokens_lower:
             continue
-        tf = doc_lower.count(t)
+        tf = doc_tokens_lower.count(t)
         idf_val = idf_cache.get(t) or 1.0
         score += idf_val * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * dl / avg_dl))
     return score
@@ -66,7 +65,7 @@ def _keyword_score(query: str, chunks: list[str]) -> list[float]:
     all_tokens = set()
     for dt in doc_tokens_list:
         all_tokens.update(dt)
-    idf_cache = {t: _idf(t, chunks) for t in qtokens if t in all_tokens}
+    idf_cache = {t: _idf(t, doc_tokens_list) for t in qtokens if t in all_tokens}
 
     scores = []
     for i, chunk in enumerate(chunks):
@@ -192,7 +191,7 @@ async def rerank(
                 proximity = 1.0 / (1.0 + max_gap / max(len(chunk), 1))
 
         # Position bonus: earlier chunks tend to be intro/overview
-        position_bonus = 1.0 - (idx / max(len(candidates + list(range(len(candidates)))), 1)) * 0.1
+        position_bonus = 1.0 - (idx / max(len(candidates), 1)) * 0.1
 
         # Combine: original hybrid score (70%) + content signals (30%)
         rerank_score = 0.7 * score + 0.2 * token_coverage + 0.1 * proximity
